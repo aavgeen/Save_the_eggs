@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<!--[if lt IE 7]>      <html lang="en" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html lang="en" class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html lang="en" class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<meta name="description" content="Classic Falling eggs game">
+        <meta name="keywords" content="Classic, catch, eggs, falling, free, old">
+        <meta name="author" content="Aavgeen Singh">
+		
+		<!-- Mobile Specific Meta -->
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<style>
+canvas{
+	border:2px;
+	border-color: #1E90FF;
+	background-image: url("clouds.jpg");
+}
+
+h2{
+	color: #104E8B;
+}
+
+aside {
+	color: #104E8B;
+	text-align:center;
+}
+</style>
+<body>
+<center>
+<h2>Save the Eggs</h2>
+<canvas width = '600px' height='630px' id = 'mycanvas'></canvas></center>
+
+<script>
+var canvas = document.getElementById('mycanvas');
+var ctx = canvas.getContext("2d");  // drawing object for the canvas. The getContext() is a built-in HTML object, with properties and methods for drawing:
+var r = canvas.width/40; //r to make figures according to the canvas's measurements.
+var bas_r = 2.5*r; //bowl's radius
+var third = (canvas.height-bas_r)/3;
+var x = [getRandomInt(r,canvas.width-r),getRandomInt(r,canvas.width-r),getRandomInt(r,canvas.width-r)];
+var y = [ -1*r,  -1*(r+third), -1*(r+2*third)];
+var down = 0;
+var ball_speed = 1.5;
+var balls = 3;
+var bas_x = canvas.width/2;
+var bas_y = canvas.height-bas_r;// to set position of the bowl.
+var bas_speed = 5;
+var isps = false;
+var l_pressed = false,r_pressed = false;
+var score = 0,mx_score=0;
+var lives = balls;
+var lost = false;
+
+if(ball_speed>=2.4 && ball_speed<3.0){
+		bas_speed=8;
+}
+
+else if(ball_speed>=3.0){
+		bas_speed=12;
+}
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function reset(){
+	score = 0;
+	lives = balls;
+	lost = false;
+	x = [getRandomInt(r,canvas.width-r),getRandomInt(r,canvas.width-r),getRandomInt(r,canvas.width-r)];
+	y = [ -1*r,  -1*(r+third), -1*(r+2*third)];
+	down = 0;
+	ball_speed = 1.5;
+	balls = 3;
+	bas_x = canvas.width/2;
+	bas_y = canvas.height-bas_r;
+	isps = false;
+	l_pressed = false;
+	r_pressed = false;
+}
+function max(a,b){
+	return a>b?a:b;
+}
+
+
+function draw(){
+	if (isps==true||lost==true) return 0;
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+	if (x[down]>=bas_x-bas_r && x[down]<=bas_x+bas_r && y[down]<=bas_y && y[down]+r>=bas_y){
+		score+=1;
+		if (ball_speed<2.5) ball_speed=(score/10)*0.01+ball_speed;
+		mx_score = max(mx_score,score);
+		x[down] = getRandomInt(r,canvas.width-r);
+		y[down] = -r;
+		down = (down+1)%balls;
+	}
+	if (y[down]>=(canvas.height)){
+		lives-=1;
+		if (lives==0) lost=true;
+		x[down] = getRandomInt(r,canvas.width-r);
+		y[down] = -r;
+		down = (down+1)%balls;
+	}
+	ctx.beginPath();
+	ctx.font = '12px Arial';
+	ctx.fillStyle = 'blue';
+	ctx.fillText("SCORE: "+score,440,20);
+	ctx.fillText("BEST: "+mx_score,440,40);
+	ctx.fillText("Egg speed: "+(ball_speed-0.5).toFixed(2),440,60);
+	ctx.fillText("Lives: "+lives,440,80);
+	ctx.closePath();
+	for (var i=0;i<5;i+=1){
+		ctx.beginPath();
+		ctx.arc(x[i],y[i],r,0,2*Math.PI,false);// draws the balls which are falling.
+		ctx.fillStyle = '#ffff99';
+		y[i]+=ball_speed; // makes a particular ball fall down in y co-ordinate.
+		ctx.fill();
+		ctx.closePath();
+	}
+	if (r_pressed==true && (bas_x+bas_r+bas_speed)<=canvas.width) bas_x+=bas_speed;
+	if (l_pressed==true && (bas_x-bas_r-bas_speed>=0)) bas_x-=bas_speed;
+	ctx.beginPath();
+	ctx.arc(bas_x,bas_y,bas_r,0,Math.PI,false); // for bowl
+	ctx.fillStyle = ' #b35900';
+	ctx.fill();
+	ctx.closePath();
+}
+function DownkeyHandler(key){
+	<!--39 IS RIGHT-KEY-->
+	if (key.keyCode==39) r_pressed = true;
+	<!--37 IS LEFT-KEY-->
+	else if (key.keyCode==37) l_pressed = true;
+	<!-- 38 is UP key -->
+	else if(key.keyCode==38) ball_speed=ball_speed+0.2;
+	<!-- 40 is DOWN key -->
+	else if(key.keyCode==40) ball_speed=ball_speed-0.2;
+	
+}
+function UpkeyHandler(key){
+	if (key.keyCode==39) r_pressed = false;
+	else if (key.keyCode==37) l_pressed = false;
+	<!--32 IS SPACEBAR-->
+	else if (key.keyCode==32){
+		if (isps==false) isps=true;
+		else if (isps==true) isps=false;
+	}
+	<!--13 IS ENTER KEY-->
+	else if (key.keyCode==13){
+		reset();
+	}
+}
+document.addEventListener("keydown",DownkeyHandler,false);
+document.addEventListener("keyup",UpkeyHandler,false);
+setInterval(draw,8);
+</script>
+<aside> ENTER key for restarting the game.     SPACE key to pause the game </aside>
+<aside> UP and DOWN keys to increase and decrease the speed of falling egges.</aside>
+</body>
+</html>
